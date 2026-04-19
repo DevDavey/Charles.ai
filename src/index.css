@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-orange: #FF4E00;
+  --color-brand-blue: #3B28CC;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-[#050505] text-[#F5F5F5] selection:bg-brand-orange selection:text-white;
+  }
+}
+
+.mesh-gradient-blue {
+  background: radial-gradient(circle at center, var(--color-brand-blue), transparent);
+}
+
+.mesh-gradient-orange {
+  background: radial-gradient(circle at center, var(--color-brand-orange), transparent);
+}

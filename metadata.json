@@ -1,0 +1,6 @@
+{
+  "name": "Charles.ai",
+  "description": "The elite AI phone setter powered by Durum and PitchLab. Mastering the Quebec market with human-grade performance.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": []
+}
