@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useRef, useEffect } from "react";
+import * as THREE from "three";
 import { motion, useInView } from "motion/react";
 import { 
   Phone, 
@@ -40,6 +41,251 @@ const performanceData = [
   { name: "Week 6", humans: 12, charles: 120 },
 ];
 
+function HeroField() {
+  const mountRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = mountRef.current;
+    if (!el) return;
+
+    let W = el.clientWidth, H = el.clientHeight;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(42, W / H, 0.1, 500);
+    camera.position.set(0, 0, 85);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setClearColor(0x000000, 0);
+    renderer.setSize(W, H);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    el.appendChild(renderer.domElement);
+
+    const LINE_COUNT = 13;
+    const PTS = 280;
+    const SPAN = 170;
+
+    // Each line: fundamental + 2 harmonics + slow voice-activity envelope
+    const params = Array.from({ length: LINE_COUNT }, (_, i) => {
+      const norm = i / (LINE_COUNT - 1); // 0..1
+      return {
+        yBase: (norm - 0.5) * 64,
+        amp: 1.2 + Math.sin(i * 1.7) * 0.9,
+        freq: 1.8 + i * 0.22,
+        phase: i * 0.83,
+        speed: 0.28 + i * 0.018,
+        // lines near center are slightly brighter
+        opacity: 0.09 + (1 - Math.abs(norm - 0.5) * 2) * 0.07,
+      };
+    });
+
+    const geos: THREE.BufferGeometry[] = [];
+
+    for (const p of params) {
+      const positions = new Float32Array(PTS * 3);
+      const colors = new Float32Array(PTS * 3);
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+      geo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+      geos.push(geo);
+
+      const mat = new THREE.LineBasicMaterial({
+        vertexColors: true,
+        transparent: true,
+        opacity: p.opacity,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      });
+      scene.add(new THREE.Line(geo, mat));
+    }
+
+    const update = (t: number) => {
+      params.forEach((p, li) => {
+        const pos = geos[li].attributes.position.array as Float32Array;
+        const col = geos[li].attributes.color.array as Float32Array;
+        // slow breath: voice-activity envelope per line
+        const env = 0.45 + 0.55 * Math.abs(Math.sin(t * 0.18 + p.phase * 1.4));
+
+        for (let j = 0; j < PTS; j++) {
+          const x = (j / (PTS - 1) - 0.5) * SPAN;
+          const ph = (j / PTS) * Math.PI * 2 * p.freq;
+          const disp = env * p.amp * (
+            Math.sin(ph + t * p.speed + p.phase) +
+            0.38 * Math.sin(ph * 2.3 - t * p.speed * 1.5 + p.phase * 0.5) +
+            0.14 * Math.cos(ph * 4.1 + t * p.speed * 0.7)
+          );
+          pos[j * 3] = x;
+          pos[j * 3 + 1] = p.yBase + disp;
+          pos[j * 3 + 2] = 0;
+
+          // edge fade + brightness peaks at displacement extremes
+          const edgeFade = 1 - Math.pow(Math.abs(j / (PTS - 1) - 0.5) * 2, 2.5);
+          const dispNorm = Math.abs(disp) / (p.amp * 1.5 * env + 0.001);
+          const b = edgeFade * (0.35 + dispNorm * 0.65);
+          col[j * 3] = b;
+          col[j * 3 + 1] = b * 0.28;
+          col[j * 3 + 2] = b * 0.02;
+        }
+        geos[li].attributes.position.needsUpdate = true;
+        geos[li].attributes.color.needsUpdate = true;
+      });
+    };
+
+    update(0);
+
+    let t = 0, last = performance.now();
+    let animId: number;
+
+    const tick = () => {
+      animId = requestAnimationFrame(tick);
+      const now = performance.now();
+      t += (now - last) * 0.001;
+      last = now;
+      update(t);
+      renderer.render(scene, camera);
+    };
+    tick();
+
+    const onResize = () => {
+      W = el.clientWidth; H = el.clientHeight;
+      camera.aspect = W / H;
+      camera.updateProjectionMatrix();
+      renderer.setSize(W, H);
+    };
+    window.addEventListener("resize", onResize);
+
+    return () => {
+      cancelAnimationFrame(animId);
+      window.removeEventListener("resize", onResize);
+      geos.forEach(g => g.dispose());
+      renderer.dispose();
+      if (el.contains(renderer.domElement)) el.removeChild(renderer.domElement);
+    };
+  }, []);
+
+  return <div ref={mountRef} className="absolute inset-0 pointer-events-none" />;
+}
+
+function SignalField() {
+  const mountRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = mountRef.current;
+    if (!el) return;
+
+    let W = el.clientWidth;
+    let H = el.clientHeight;
+
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x000000, 0.007);
+
+    const camera = new THREE.PerspectiveCamera(50, W / H, 0.1, 1000);
+    camera.position.set(0, 42, 72);
+    camera.lookAt(0, -4, 0);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setClearColor(0x000000, 0);
+    renderer.setSize(W, H);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    el.appendChild(renderer.domElement);
+
+    const COLS = 72;
+    const ROWS = 48;
+    const SPACING = 2.6;
+
+    const hSeg = ROWS * (COLS - 1);
+    const vSeg = COLS * (ROWS - 1);
+    const totalVerts = (hSeg + vSeg) * 2;
+
+    const positions = new Float32Array(totalVerts * 3);
+    const colors = new Float32Array(totalVerts * 3);
+    const gridY = new Float32Array(ROWS * COLS);
+
+    const update = (t: number) => {
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          const x = (c - COLS / 2) * SPACING;
+          const z = (r - ROWS / 2) * SPACING;
+          const d = Math.sqrt(x * x + z * z) * 0.05;
+          gridY[r * COLS + c] =
+            Math.sin(d * 2.8 - t * 1.6) * Math.exp(-d * 0.28) * 11 +
+            Math.sin(x * 0.11 + t * 0.65) * 2.8 +
+            Math.cos(z * 0.09 - t * 0.48) * 2.2;
+        }
+      }
+
+      let vi = 0;
+      const setVert = (r: number, c: number) => {
+        const x = (c - COLS / 2) * SPACING;
+        const z = (r - ROWS / 2) * SPACING;
+        const y = gridY[r * COLS + c];
+        positions[vi * 3] = x;
+        positions[vi * 3 + 1] = y;
+        positions[vi * 3 + 2] = z;
+        const n = Math.max(0, Math.min(1, (y + 11) / 22));
+        const b = 0.04 + n * 0.96;
+        colors[vi * 3] = b;
+        colors[vi * 3 + 1] = b * (0.04 + n * 0.27);
+        colors[vi * 3 + 2] = b * (0.18 - n * 0.17);
+        vi++;
+      };
+
+      for (let r = 0; r < ROWS; r++)
+        for (let c = 0; c < COLS - 1; c++) { setVert(r, c); setVert(r, c + 1); }
+      for (let c = 0; c < COLS; c++)
+        for (let r = 0; r < ROWS - 1; r++) { setVert(r, c); setVert(r + 1, c); }
+    };
+
+    update(0);
+
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+    geo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+
+    const mat = new THREE.LineBasicMaterial({
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.4,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+
+    scene.add(new THREE.LineSegments(geo, mat));
+
+    let t = 0;
+    let animId: number;
+    let last = performance.now();
+
+    const tick = () => {
+      animId = requestAnimationFrame(tick);
+      const now = performance.now();
+      t += (now - last) * 0.001 * 0.85;
+      last = now;
+      update(t);
+      geo.attributes.position.needsUpdate = true;
+      geo.attributes.color.needsUpdate = true;
+      renderer.render(scene, camera);
+    };
+    tick();
+
+    const onResize = () => {
+      W = el.clientWidth; H = el.clientHeight;
+      camera.aspect = W / H;
+      camera.updateProjectionMatrix();
+      renderer.setSize(W, H);
+    };
+    window.addEventListener("resize", onResize);
+
+    return () => {
+      cancelAnimationFrame(animId);
+      window.removeEventListener("resize", onResize);
+      geo.dispose(); mat.dispose(); renderer.dispose();
+      if (el.contains(renderer.domElement)) el.removeChild(renderer.domElement);
+    };
+  }, []);
+
+  return <div ref={mountRef} className="absolute inset-0 pointer-events-none" />;
+}
+
 function scrollTo(id: string) {
   const el = id ? document.getElementById(id) : document.documentElement;
   (el ?? document.documentElement).scrollIntoView({ behavior: "smooth", block: "start" });
@@ -50,264 +296,6 @@ function navClick(e: React.MouseEvent<HTMLAnchorElement>, id: string) {
   scrollTo(id);
 }
 
-type CallLine = {
-  delay: number;
-  spk: "C" | "M";
-  ts: string;
-  text: string;
-  sentiment: number;
-  propensity: number;
-  intent: "NEUTRAL" | "EXPLORING" | "RESISTANT" | "INTERESTED" | "COMMITTED";
-  keywords?: string[];
-  event?: "objection" | "painpoint" | "booked";
-};
-
-const CALL_LINES: CallLine[] = [
-  { delay: 800,  spk: "C", ts: "00:08", text: "Bonjour Martin, c'est Charles — référencement B2B Québec.", sentiment: 0.65, propensity: 5.2, intent: "NEUTRAL" },
-  { delay: 2400, spk: "M", ts: "00:14", text: "Oui bonjour. De quoi il s'agit?", sentiment: 0.52, propensity: 5.2, intent: "NEUTRAL" },
-  { delay: 4200, spk: "C", ts: "00:21", text: "On automatise la prise de RDV B2B. Combien de personnes en prospection?", sentiment: 0.68, propensity: 5.8, intent: "EXPLORING" },
-  { delay: 6200, spk: "M", ts: "00:31", text: "Trois. Mais c'est trop cher pour nous en Q3.", sentiment: 0.41, propensity: 4.9, intent: "RESISTANT", keywords: ["budget", "Q3", "trop_cher"], event: "objection" },
-  { delay: 8400, spk: "C", ts: "00:40", text: "C'est le budget ou le timing?", sentiment: 0.60, propensity: 5.6, intent: "RESISTANT" },
-  { delay: 10400, spk: "M", ts: "00:49", text: "Les deux. Firme offshore l'an passé — ça nous a coûté des clients.", sentiment: 0.37, propensity: 6.3, intent: "RESISTANT", keywords: ["offshore", "client_churn"], event: "painpoint" },
-  { delay: 12400, spk: "C", ts: "00:57", text: "C'est exactement ce qu'on entend. 20 min pour vous montrer?", sentiment: 0.73, propensity: 7.9, intent: "INTERESTED" },
-  { delay: 14000, spk: "M", ts: "01:02", text: "Ouais, envoyez quelque chose.", sentiment: 0.76, propensity: 8.5, intent: "INTERESTED" },
-  { delay: 15400, spk: "C", ts: "01:08", text: "Je vous bloque jeudi 24 avril 10h00 — ça vous convient?", sentiment: 0.84, propensity: 9.3, intent: "COMMITTED" },
-  { delay: 16800, spk: "M", ts: "01:12", text: "Oui, c'est parfait.", sentiment: 0.93, propensity: 9.8, intent: "COMMITTED", event: "booked" },
-];
-
-const INTENT_META: Record<string, { color: string; bg: string; label: string }> = {
-  NEUTRAL:    { color: "text-zinc-400",   bg: "bg-zinc-400",   label: "NEUTRAL" },
-  EXPLORING:  { color: "text-blue-400",   bg: "bg-blue-400",   label: "EXPLORING" },
-  RESISTANT:  { color: "text-amber-400",  bg: "bg-amber-400",  label: "RESISTANT" },
-  INTERESTED: { color: "text-brand-orange", bg: "bg-brand-orange", label: "INTERESTED" },
-  COMMITTED:  { color: "text-green-400",  bg: "bg-green-400",  label: "COMMITTED" },
-};
-
-function LiveCallCard() {
-  const [visibleLines, setVisibleLines] = useState<number[]>([]);
-  const [events, setEvents] = useState<string[]>([]);
-  const [elapsed, setElapsed] = useState(0);
-
-  useEffect(() => {
-    const timeouts: ReturnType<typeof setTimeout>[] = [];
-    let timerInterval: ReturnType<typeof setInterval>;
-    let active = true;
-
-    function start() {
-      if (!active) return;
-      setVisibleLines([]);
-      setEvents([]);
-      setElapsed(0);
-      timerInterval = setInterval(() => { if (active) setElapsed(e => e + 1); }, 1000);
-
-      CALL_LINES.forEach((line, i) => {
-        timeouts.push(setTimeout(() => {
-          if (!active) return;
-          setVisibleLines(prev => [...prev, i]);
-          if (line.event) {
-            const t = setTimeout(() => {
-              if (active) setEvents(prev => [...prev, line.event!]);
-            }, 700);
-            timeouts.push(t);
-          }
-        }, line.delay));
-      });
-
-      timeouts.push(setTimeout(() => { clearInterval(timerInterval); start(); }, 23000));
-    }
-
-    start();
-    return () => { active = false; timeouts.forEach(clearTimeout); clearInterval(timerInterval); };
-  }, []);
-
-  const latestLine = visibleLines.length > 0 ? CALL_LINES[visibleLines[visibleLines.length - 1]] : null;
-  const sentiment  = latestLine?.sentiment  ?? 0.5;
-  const propensity = latestLine?.propensity ?? 0;
-  const intent     = latestLine?.intent     ?? "NEUTRAL";
-  const allKeywords = [...new Set(visibleLines.flatMap(i => CALL_LINES[i].keywords ?? []))];
-  const fmt = (s: number) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
-  const intentMeta = INTENT_META[intent];
-
-  return (
-    <div className="w-[500px] h-[640px] border border-white/10 bg-[#070707] rounded-tl-[60px] flex flex-col overflow-hidden">
-
-      {/* Header */}
-      <div className="flex items-center justify-between px-8 pt-7 pb-5 border-b border-white/[0.06] shrink-0">
-        <div className="flex items-center gap-2.5">
-          <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.9)]"></div>
-          <span className="text-[9px] font-black text-red-500 uppercase tracking-[0.2em] font-mono">Live Call</span>
-        </div>
-        <div className="flex items-center gap-5">
-          <div className="text-right">
-            <p className="text-[10px] font-black text-white tracking-tight">Martin Tremblay</p>
-            <p className="text-[8px] text-zinc-600 uppercase tracking-widest font-mono">CFO · Tremblay Logistique</p>
-          </div>
-          <span className="text-[13px] font-mono text-zinc-500 tabular-nums font-bold">{fmt(elapsed)}</span>
-        </div>
-      </div>
-
-      {/* Metric Bars */}
-      <div className="grid grid-cols-2 gap-px bg-white/[0.04] shrink-0">
-        {[
-          { label: "SENTIMENT", value: sentiment, display: sentiment.toFixed(2), color: "from-amber-500 to-green-400" },
-          { label: "PROPENSITY", value: propensity / 10, display: `${propensity.toFixed(1)}/10`, color: "from-brand-orange to-amber-400" },
-        ].map(({ label, value, display, color }) => (
-          <div key={label} className="bg-[#070707] px-6 py-3 space-y-2">
-            <div className="flex justify-between items-center">
-              <span className="text-[7px] uppercase tracking-[0.25em] text-zinc-700 font-black font-mono">{label}</span>
-              <motion.span
-                key={display}
-                initial={{ opacity: 0, y: -4 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-[10px] font-black font-mono tabular-nums text-white"
-              >
-                {display}
-              </motion.span>
-            </div>
-            <div className="w-full h-[3px] bg-white/5 rounded-full overflow-hidden">
-              <motion.div
-                animate={{ width: `${value * 100}%` }}
-                transition={{ duration: 0.9, ease: "easeOut" }}
-                className={`h-full bg-gradient-to-r ${color} rounded-full`}
-              />
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Body: Transcript + Intelligence */}
-      <div className="flex flex-1 overflow-hidden min-h-0">
-
-        {/* Transcript */}
-        <div className="flex-1 flex flex-col justify-end overflow-hidden px-6 py-4 gap-[7px] border-r border-white/[0.04]">
-          {CALL_LINES.map((line, i) =>
-            visibleLines.includes(i) ? (
-              <motion.div key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}>
-                <div className="flex items-baseline gap-2">
-                  <span className={`text-[8px] font-black font-mono shrink-0 w-3 ${line.spk === "C" ? "text-brand-orange" : "text-zinc-600"}`}>
-                    {line.spk}
-                  </span>
-                  <span className="text-[7px] font-mono text-zinc-700 shrink-0 tabular-nums">{line.ts}</span>
-                  <p className={`text-[9px] leading-snug font-mono ${line.spk === "C" ? "text-zinc-300" : "text-zinc-500"}`}>
-                    {line.text}
-                  </p>
-                </div>
-                {line.keywords && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.7 }}
-                    className="flex gap-1 ml-11 mt-1 flex-wrap"
-                  >
-                    {line.keywords.map(kw => (
-                      <span key={kw} className="text-[6px] px-1.5 py-0.5 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-sm uppercase tracking-wider font-black font-mono">
-                        {kw}
-                      </span>
-                    ))}
-                  </motion.div>
-                )}
-              </motion.div>
-            ) : null
-          )}
-        </div>
-
-        {/* Intelligence Side Panel */}
-        <div className="w-[136px] shrink-0 flex flex-col px-4 py-5 gap-5 bg-white/[0.01]">
-
-          {/* Intent */}
-          <div className="space-y-2">
-            <span className="text-[6px] uppercase tracking-[0.25em] text-zinc-700 font-black font-mono block">Intent</span>
-            <motion.div key={intent} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-1.5">
-              <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${intentMeta.bg}`}></div>
-              <span className={`text-[9px] font-black font-mono ${intentMeta.color}`}>{intentMeta.label}</span>
-            </motion.div>
-          </div>
-
-          {/* Flagged Terms */}
-          <div className="space-y-2">
-            <span className="text-[6px] uppercase tracking-[0.25em] text-zinc-700 font-black font-mono block">Flagged</span>
-            <div className="flex flex-col gap-1.5">
-              {allKeywords.length === 0
-                ? <span className="text-[8px] font-mono text-zinc-800">—</span>
-                : allKeywords.map((kw, i) => (
-                  <motion.div key={kw} initial={{ opacity: 0, x: 6 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.06 }}
-                    className="flex items-center gap-1.5"
-                  >
-                    <div className="w-1 h-1 bg-amber-500/60 rounded-full shrink-0"></div>
-                    <span className="text-[8px] font-mono text-zinc-500">{kw}</span>
-                  </motion.div>
-                ))
-              }
-            </div>
-          </div>
-
-          {/* Signal Bars */}
-          <div className="space-y-2 mt-auto">
-            <span className="text-[6px] uppercase tracking-[0.25em] text-zinc-700 font-black font-mono block">Signal</span>
-            {[
-              { label: "engagement", val: Math.round(sentiment * 100) },
-              { label: "close_prob",  val: Math.round(propensity * 10) },
-              { label: "trust_idx",   val: Math.min(100, Math.round((sentiment * 0.6 + propensity * 0.04) * 100)) },
-            ].map(({ label, val }) => (
-              <div key={label} className="space-y-1">
-                <div className="flex justify-between">
-                  <span className="text-[6px] font-mono text-zinc-700">{label}</span>
-                  <span className="text-[6px] font-mono text-zinc-600 tabular-nums">{val}%</span>
-                </div>
-                <div className="w-full h-[2px] bg-white/5">
-                  <motion.div animate={{ width: `${val}%` }} transition={{ duration: 0.9 }} className="h-full bg-white/25 rounded-full" />
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* DURUM badge */}
-          <div className="pt-2 border-t border-white/5">
-            <span className="text-[6px] uppercase tracking-[0.2em] text-zinc-800 font-black font-mono">DURUM.AI</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Intelligence Event Log */}
-      <div className="border-t border-white/[0.06] px-6 py-3 space-y-1.5 shrink-0 bg-black/30">
-        <span className="text-[6px] uppercase tracking-[0.25em] text-zinc-800 font-black font-mono block mb-2">Intelligence Log</span>
-        {!events.length && (
-          <p className="text-[8px] font-mono text-zinc-800">Awaiting triggers...</p>
-        )}
-        {events.includes("objection") && (
-          <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-2 font-mono text-[8px]"
-          >
-            <span className="text-amber-500 shrink-0">⚡</span>
-            <span className="text-zinc-700 tabular-nums shrink-0">00:31</span>
-            <span className="text-amber-400 font-black">OBJECTION_LOGGED</span>
-            <span className="text-zinc-700 ml-auto italic shrink-0">trop_cher · Q3</span>
-          </motion.div>
-        )}
-        {events.includes("painpoint") && (
-          <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-2 font-mono text-[8px]"
-          >
-            <span className="text-brand-orange shrink-0">●</span>
-            <span className="text-zinc-700 tabular-nums shrink-0">00:49</span>
-            <span className="text-brand-orange font-black">PAIN_POINT_DETECTED</span>
-            <span className="text-zinc-700 ml-auto italic shrink-0">offshore_vendor</span>
-          </motion.div>
-        )}
-        {events.includes("booked") && (
-          <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-2 font-mono text-[8px]"
-          >
-            <span className="text-green-400 shrink-0">✓</span>
-            <span className="text-zinc-700 tabular-nums shrink-0">01:12</span>
-            <span className="text-green-400 font-black">APPOINTMENT_CONFIRMED</span>
-            <span className="text-zinc-400 ml-auto shrink-0">Apr 24 · 10:00</span>
-          </motion.div>
-        )}
-      </div>
-    </div>
-  );
-}
 
 export default function App() {
   const chartRef = useRef<HTMLDivElement>(null);
@@ -337,8 +325,10 @@ export default function App() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative z-10 grid grid-cols-1 md:grid-cols-12 min-h-screen pt-32 px-6 md:px-16 items-center">
-        <div className="col-span-1 md:col-span-7 space-y-10">
+      <section className="relative z-10 flex flex-col items-center justify-center min-h-screen pt-32 px-6 md:px-16 text-center overflow-hidden">
+        <HeroField />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#050505] via-transparent to-[#050505] pointer-events-none z-[1]" />
+        <div className="space-y-10 max-w-5xl relative z-[2]">
           <motion.h1
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -368,35 +358,28 @@ export default function App() {
             </motion.span>
           </motion.h1>
 
-          <motion.p 
+          <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="text-2xl text-zinc-400 font-light max-w-xl leading-relaxed"
+            className="text-2xl text-zinc-400 font-light max-w-2xl mx-auto leading-relaxed"
           >
             Charles calls your leads, books the meeting, and hands your closer a perfect briefing. Powered by <span className="text-white font-medium italic">Durum Intelligence</span> and <span className="text-white font-medium italic">PitchLabs Voice</span>.
           </motion.p>
-          
-          <motion.div 
+
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="flex flex-col sm:flex-row items-center gap-8"
+            className="flex flex-col sm:flex-row items-center justify-center gap-8"
           >
             <button className="w-full sm:w-auto bg-white text-black px-12 py-6 text-sm font-black uppercase tracking-widest hover:bg-brand-orange hover:text-white transition-all cursor-pointer group flex items-center justify-center gap-3">
               Deploy Your Agent <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
             </button>
-            <div className="flex items-center gap-4 border-l border-white/10 pl-8">
-               <div className="flex flex-col">
-                  <span className="text-[10px] text-zinc-500 uppercase font-black tracking-widest">Target Market</span>
-                  <span className="text-lg font-bold italic">Quebec Network</span>
-               </div>
-            </div>
+            <button className="w-full sm:w-auto border border-white/20 text-white px-12 py-6 text-sm font-black uppercase tracking-widest hover:border-brand-orange hover:text-brand-orange transition-all cursor-pointer flex items-center justify-center gap-3">
+              Watch Demo <ChevronRight size={18} />
+            </button>
           </motion.div>
-        </div>
-
-        <div className="col-span-1 md:col-span-5 hidden md:flex justify-end pt-20">
-          <LiveCallCard />
         </div>
       </section>
 
@@ -535,9 +518,6 @@ export default function App() {
             <div className="space-y-6">
               <p className="text-xl text-zinc-400 font-light leading-relaxed">
                 Most AI voices are trained on generic datasets. Charles was trained on <span className="text-white font-medium">thousands of hours of real sales calls</span> from one source — <span className="text-white font-medium italic">Charles Gosselin</span>, one of Quebec's most decorated closers.
-              </p>
-              <p className="text-zinc-500 font-light leading-relaxed">
-                Every pause, every pivot, every FR/EN code-switch — captured, analyzed, and distilled into a voice model that doesn't just sound human. It sounds like the best version of a Quebec closer who's been in the room a thousand times.
               </p>
             </div>
           </motion.div>
@@ -796,11 +776,13 @@ export default function App() {
       </section>
 
       {/* Final Tunnel */}
-      <section className="py-40 px-6 md:px-16 text-center">
-        <motion.div 
+      <section className="py-40 px-6 md:px-16 text-center relative overflow-hidden">
+        <SignalField />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#050505] via-[#050505]/60 to-[#050505] pointer-events-none z-[1]" />
+        <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
-          className="space-y-12"
+          className="space-y-12 relative z-[2]"
         >
           <h2 className="text-6xl md:text-[120px] font-black italic uppercase italic tracking-tighter leading-[0.8]">
             READY TO<br/>REPLACE THE<br/><span className="text-brand-orange">BOTTLENECK?</span>
