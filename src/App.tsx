@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from "react";
-import { motion } from "motion/react";
+import React, { useState, useEffect, useRef } from "react";
+import { motion, useInView } from "motion/react";
 import { 
   Phone, 
   Database, 
@@ -310,6 +310,9 @@ function LiveCallCard() {
 }
 
 export default function App() {
+  const chartRef = useRef<HTMLDivElement>(null);
+  const chartInView = useInView(chartRef, { once: true, margin: "-100px" });
+
   return (
     <div className="min-h-screen bg-[#050505] text-[#F5F5F5] font-sans selection:bg-brand-orange selection:text-white flex flex-col">
       {/* Background Mesh Gradients */}
@@ -654,9 +657,9 @@ export default function App() {
             </div>
           </div>
 
-          <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-8 h-[400px]">
+          <div ref={chartRef} className="bg-white/[0.02] border border-white/5 rounded-3xl p-8 h-[400px]">
              <div className="flex justify-between items-center mb-8 px-4">
-                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Appointments Booked / Week</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Clients Booked / Week</span>
                 <div className="flex gap-4">
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-zinc-600"></div>
@@ -669,7 +672,7 @@ export default function App() {
                 </div>
              </div>
              <ResponsiveContainer width="100%" height="80%">
-                <AreaChart data={performanceData}>
+                <AreaChart key={chartInView ? 1 : 0} data={performanceData} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
                   <defs>
                     <linearGradient id="colorCharles" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#FF4E00" stopOpacity={0.3}/>
@@ -679,12 +682,12 @@ export default function App() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
                   <XAxis dataKey="name" stroke="#ffffff30" fontSize={10} axisLine={false} tickLine={false} />
                   <YAxis stroke="#ffffff30" fontSize={10} axisLine={false} tickLine={false} />
-                  <Tooltip 
+                  <Tooltip
                     contentStyle={{ backgroundColor: "#111", border: "1px solid #ffffff10", borderRadius: "8px" }}
                     itemStyle={{ fontSize: "10px", textTransform: "uppercase", fontWeight: "bold" }}
                   />
-                  <Area type="monotone" dataKey="charles" stroke="#FF4E00" strokeWidth={3} fillOpacity={1} fill="url(#colorCharles)" />
-                  <Area type="monotone" dataKey="humans" stroke="#444" strokeWidth={2} fillOpacity={0} />
+                  <Area type="monotone" dataKey="humans" stroke="#444" strokeWidth={2} fillOpacity={0} isAnimationActive={chartInView} animationDuration={4000} animationEasing="ease-out" />
+                  <Area type="monotone" dataKey="charles" stroke="#FF4E00" strokeWidth={3} fillOpacity={1} fill="url(#colorCharles)" isAnimationActive={chartInView} animationDuration={4000} animationEasing="ease-out" />
                 </AreaChart>
              </ResponsiveContainer>
           </div>
