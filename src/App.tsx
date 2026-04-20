@@ -776,15 +776,18 @@ export default function App() {
           </h2>
           <div className="flex flex-col md:flex-row justify-center gap-6">
             <button className="bg-brand-orange text-white px-16 py-8 text-lg font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_20px_50px_rgba(255,78,0,0.3)] cursor-pointer">
-              Apply for Private Beta
+              Apply for Beta
             </button>
             <button className="border border-white/20 px-16 py-8 text-lg font-black uppercase tracking-widest hover:bg-white/5 transition-all cursor-pointer">
               Try our Demo
             </button>
           </div>
-          <div className="pt-20 flex justify-center gap-16 opacity-30 grayscale saturate-0 items-center">
+          <div className="pt-20 flex justify-center gap-8 opacity-30 grayscale saturate-0 items-center">
              <div className="flex items-center gap-2 font-bold italic tracking-tighter text-2xl uppercase">
                <Database size={20} /> Durum.ai
+             </div>
+            <div className="flex items-center gap-2 font-bold italic tracking-tighter text-2xl uppercase">
+               +
              </div>
              <div className="flex items-center gap-2 font-bold italic tracking-tighter text-2xl uppercase">
                PitchLabs
