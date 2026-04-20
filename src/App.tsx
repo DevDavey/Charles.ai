@@ -400,7 +400,7 @@ export default function App() {
             <div className="lg:col-span-5 space-y-12">
                <div className="space-y-4">
                   <span className="text-xs font-black uppercase tracking-[0.4em] text-brand-orange">The Discovery-to-Close protocol</span>
-                  <h3 className="text-4xl font-bold tracking-tighter uppercase italic">Your Closer's<br/>Cheat Sheet.</h3>
+                  <h3 className="text-4xl font-bold tracking-tighter uppercase italic">Your Cheat Sheet.</h3>
                   <p className="text-zinc-500 font-light leading-relaxed">
                     We built the tool we wished we had. Every call surfaces pain points, logs objections, and produces a structured brief so you can walk in knowing exactly what to say.
                   </p>
@@ -418,7 +418,7 @@ export default function App() {
                     <div className="w-px h-12 bg-zinc-800 mt-2"></div>
                     <div className="space-y-2">
                        <h4 className="text-sm font-black uppercase tracking-widest text-white">Objection Logging</h4>
-                       <p className="text-xs text-zinc-500 font-light leading-relaxed">Every "trop cher," or "on va y penser" is flagged and categorized in real time. Your closer sees exactly what pushed back and how hard — before they dial.</p>
+                       <p className="text-xs text-zinc-500 font-light leading-relaxed">You see exactly where the client pushed back and how hard before you close the deal.</p>
                     </div>
                   </div>
                   <div className="flex gap-6 opacity-40">
@@ -540,8 +540,8 @@ export default function App() {
                   <div className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Hours of Calls Analyzed</div>
                 </div>
                 <div className="space-y-1">
-                  <div className="text-3xl font-black italic">15<span className="text-brand-orange">yr</span></div>
-                  <div className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Career in Quebec Sales</div>
+                  <div className="text-3xl font-black italic">10<span className="text-brand-orange">yr</span></div>
+                  <div className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Career in Sales</div>
                 </div>
                 <div className="space-y-1">
                   <div className="text-3xl font-black italic">FR<span className="text-zinc-600">/</span>EN</div>
@@ -606,7 +606,7 @@ export default function App() {
               Charles <span className="text-zinc-500">evolves.</span>
             </h2>
             <p className="text-xl text-zinc-400 font-light max-w-lg leading-relaxed">
-              Every call makes Charles sharper. It learns in real time — what objections kill deals, which openers build trust and recalibrates before the next dial.
+              Every call makes Charles sharper. Charles learns in real time what objections are killing your deals, which openers build trust and recalibrates before the next dial.
             </p>
             <div className="grid grid-cols-3 gap-8 pt-8">
               <div className="space-y-2">
