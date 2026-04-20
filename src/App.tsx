@@ -9,20 +9,12 @@ import { motion, useInView } from "motion/react";
 import { 
   Phone, 
   Database, 
-  Globe, 
-  MessageSquare, 
-  ArrowRight, 
   Check, 
-  BarChart3, 
   Zap, 
-  ShieldCheck, 
   ChevronRight,
   TrendingUp,
-  Clock
 } from "lucide-react";
 import { 
-  LineChart, 
-  Line, 
   XAxis, 
   YAxis, 
   CartesianGrid, 
@@ -68,13 +60,13 @@ function HeroField() {
     const params = Array.from({ length: LINE_COUNT }, (_, i) => {
       const norm = i / (LINE_COUNT - 1); // 0..1
       return {
-        yBase: (norm - 0.5) * 64,
+        yBase: (norm - 0.5) * 6415,
         amp: 1.2 + Math.sin(i * 1.7) * 0.9,
         freq: 1.8 + i * 0.22,
         phase: i * 0.83,
         speed: 0.28 + i * 0.018,
         // lines near center are slightly brighter
-        opacity: 0.09 + (1 - Math.abs(norm - 0.5) * 2) * 0.07,
+        opacity: 0.15 + (1 - Math.abs(norm - 0.5) * 2) * 0.07,
       };
     });
 
@@ -384,7 +376,7 @@ export default function App() {
       </section>
 
       {/* How It Works Section */}
-      <section id="intel" className="scroll-mt-24 py-32 px-6 md:px-16 bg-white/[0.01] border-b border-white/5 relative overflow-hidden">
+      <section id="intel" className="py-32 px-6 md:px-16 bg-white/[0.01] border-b border-white/5 relative overflow-hidden">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,_#3B28CC_0%,_transparent_70%)] opacity-[0.03] pointer-events-none"></div>
 
         <div className="max-w-6xl mx-auto space-y-24 relative z-10">
@@ -399,7 +391,7 @@ export default function App() {
               <span className="text-zinc-600">Durum.ai</span>
             </h2>
             <p className="text-xl text-zinc-400 font-light leading-relaxed max-ax mx-auto text-center">
-              Charles doesn't just read a script. He digests the lifecycle of every lead through <span className="text-white font-medium">Durum.ai</span> before the call even begins.
+              Say goodbye to generic scripts. Charles digests the lifecycle of every lead through <span className="text-white font-medium">Durum.ai</span> before the call even begins.
             </p>
           </div>
 
@@ -410,7 +402,7 @@ export default function App() {
                   <span className="text-xs font-black uppercase tracking-[0.4em] text-brand-orange">The Discovery-to-Close protocol</span>
                   <h3 className="text-4xl font-bold tracking-tighter uppercase italic">Your Closer's<br/>Cheat Sheet.</h3>
                   <p className="text-zinc-500 font-light leading-relaxed">
-                    We built the tool we wished we had. Charles doesn't just book the meeting — he runs real discovery. Every call surfaces pain points, logs objections, and produces a structured brief so can walk in knowing exactly what to say.
+                    We built the tool we wished we had. Every call surfaces pain points, logs objections, and produces a structured brief so you can walk in knowing exactly what to say.
                   </p>
                </div>
 
@@ -419,7 +411,7 @@ export default function App() {
                     <div className="w-px h-12 bg-brand-orange/30 mt-2"></div>
                     <div className="space-y-2">
                        <h4 className="text-sm font-black uppercase tracking-widest text-white">Active Pain Discovery</h4>
-                       <p className="text-xs text-zinc-500 font-light leading-relaxed">Charles asks the right questions mid-call to uncover what's actually broken — budget pressure, team bottlenecks, failed past solutions. It's captured, not guessed.</p>
+                       <p className="text-xs text-zinc-500 font-light leading-relaxed">Charles asks the right questions mid-call to uncover what's actually broken — budget pressure, bottlenecks, failed past solutions.</p>
                     </div>
                   </div>
                   <div className="flex gap-6 opacity-60">
@@ -499,7 +491,7 @@ export default function App() {
       </section>
 
       {/* Voice Section */}
-      <section id="voice" className="scroll-mt-24 py-32 px-6 md:px-16 bg-[#080808] border-y border-white/5 relative overflow-hidden">
+      <section id="voice" className="py-32 px-6 md:px-16 bg-[#080808] border-y border-white/5 relative overflow-hidden">
         <div className="absolute -top-20 -right-20 w-96 h-96 bg-brand-orange/10 blur-[120px] rounded-full pointer-events-none"></div>
 
         <div className="max-w-6xl mx-auto space-y-20 relative z-10">
@@ -507,7 +499,7 @@ export default function App() {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
-            className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-end"
+            className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
           >
             <div className="space-y-6">
               <span className="text-xs font-black uppercase tracking-[0.4em] text-brand-orange">The PitchLabs Origin</span>
@@ -517,7 +509,7 @@ export default function App() {
             </div>
             <div className="space-y-6">
               <p className="text-xl text-zinc-400 font-light leading-relaxed">
-                Most AI voices are trained on generic datasets. Charles was trained on <span className="text-white font-medium">thousands of hours of real sales calls</span> from one source — <span className="text-white font-medium italic">Charles Gosselin</span>, one of Quebec's most decorated closers.
+                Most AI voices are trained on generic datasets. Charles was trained on <span className="text-white font-medium">thousands of hours of real sales calls</span> from one source — <span className="text-white font-medium italic">Charles Gosselin</span>, one of Quebec's top closers.
               </p>
             </div>
           </motion.div>
@@ -576,14 +568,9 @@ export default function App() {
                   body: "PitchLabs didn't synthesize a generic voice. It reverse-engineered 3,200+ hours of proven closes — every hesitation, every warm push, every objection handle — and encoded them into a model trained exclusively on winning calls.",
                 },
                 {
-                  icon: <MessageSquare size={20} />,
-                  title: "Quebec Cultural Fluency",
-                  body: "Gosselin's calls span Montréal, Québec City, Sherbrooke, and the regions. Charles inherited that geographic range — he knows when to lean FR-CA hard and when to slide bilingual without friction.",
-                },
-                {
                   icon: <Zap size={20} />,
                   title: "Dynamic Tone Mirroring",
-                  body: "Trained on thousands of live pivots, Charles reads prospect energy in real time. Hurried? He's crisp. Skeptical? He slows down and builds. It's not scripted — it's pattern-matched to what actually works.",
+                  body: "Trained on thousands of live pivots, Charles reads prospect energy in real time. Hurried? He's crisp. Skeptical? He slows down and builds. It's pattern-matched to what actually works.",
                 },
                 {
                   icon: <TrendingUp size={20} />,
@@ -611,15 +598,15 @@ export default function App() {
       </section>
 
       {/* Results Section */}
-      <section id="performance" className="scroll-mt-24 py-32 px-6 md:px-16 border-b border-white/5">
+      <section id="performance" className="py-32 px-6 md:px-16 border-b border-white/5">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-20">
           <div className="space-y-8">
             <span className="text-xs font-black uppercase tracking-[0.4em] text-brand-orange">The Advantage</span>
             <h2 className="text-5xl md:text-7xl font-bold tracking-tighter uppercase italic leading-tight">
-              Human setters dial.<br/>Charles <span className="text-zinc-500">evolves.</span>
+              Charles <span className="text-zinc-500">evolves.</span>
             </h2>
             <p className="text-xl text-zinc-400 font-light max-w-lg leading-relaxed">
-              Every call makes Charles sharper. It learns in real time — what objections kill deals, which openers build trust, what cadence closes faster — and recalibrates before the next dial.
+              Every call makes Charles sharper. It learns in real time — what objections kill deals, which openers build trust and recalibrates before the next dial.
             </p>
             <div className="grid grid-cols-3 gap-8 pt-8">
               <div className="space-y-2">
@@ -652,7 +639,7 @@ export default function App() {
                 </div>
              </div>
              <ResponsiveContainer width="100%" height="80%">
-                <AreaChart key={chartInView ? 1 : 0} data={performanceData} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
+                <AreaChart data={performanceData} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
                   <defs>
                     <linearGradient id="colorCharles" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#FF4E00" stopOpacity={0.3}/>
@@ -675,7 +662,7 @@ export default function App() {
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="scroll-mt-24 py-32 px-6 md:px-16 border-b border-white/5">
+      <section id="pricing" className="py-32 px-6 md:px-16 border-b border-white/5">
         <div className="max-w-6xl mx-auto space-y-16">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -792,7 +779,7 @@ export default function App() {
               Apply for Private Beta
             </button>
             <button className="border border-white/20 px-16 py-8 text-lg font-black uppercase tracking-widest hover:bg-white/5 transition-all cursor-pointer">
-              Download One-Pager
+              Try our Demo
             </button>
           </div>
           <div className="pt-20 flex justify-center gap-16 opacity-30 grayscale saturate-0 items-center">
