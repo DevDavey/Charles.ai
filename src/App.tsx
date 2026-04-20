@@ -364,7 +364,7 @@ export default function App() {
             transition={{ delay: 0.2 }}
             className="text-2xl text-zinc-400 font-light max-w-2xl mx-auto leading-relaxed"
           >
-            Charles calls your leads, books the meeting, and hands your closer a perfect briefing. Powered by <span className="text-white font-medium italic">Durum Intelligence</span> and <span className="text-white font-medium italic">PitchLabs Voice</span>.
+            Charles calls your leads, books the meeting, and hands your closer a perfect briefing. Powered by <span className="text-white font-medium italic">Durum.ai</span> and <span className="text-white font-medium italic">PitchLabs Voice</span>.
           </motion.p>
 
           <motion.div
@@ -396,7 +396,7 @@ export default function App() {
             </div>
             <h2 className="text-5xl md:text-8xl font-black italic uppercase tracking-tighter leading-[0.85]">
               Powered by<br/>
-              <span className="text-zinc-600">Durum Intelligence.</span>
+              <span className="text-zinc-600">Durum.ai</span>
             </h2>
             <p className="text-xl text-zinc-400 font-light leading-relaxed max-ax mx-auto text-center">
               Charles doesn't just read a script. He digests the lifecycle of every lead through <span className="text-white font-medium">Durum.ai</span> before the call even begins.
@@ -709,7 +709,7 @@ export default function App() {
               <ul className="space-y-3 text-xs font-bold uppercase tracking-widest text-zinc-400 flex-1">
                 <li className="flex items-center gap-3"><Check size={14} className="text-green-500 shrink-0" /> 1 Live Demo Call</li>
                 <li className="flex items-center gap-3"><Check size={14} className="text-green-500 shrink-0" /> PitchLabs Voice</li>
-                <li className="flex items-center gap-3"><Check size={14} className="text-green-500 shrink-0" /> Durum Intelligence</li>
+                <li className="flex items-center gap-3"><Check size={14} className="text-green-500 shrink-0" /> Durum.ai</li>
               </ul>
               <button className="w-full border border-white/20 py-4 text-xs font-black uppercase tracking-widest hover:bg-white/5 transition-all cursor-pointer">
                 Try our Demo
@@ -738,7 +738,7 @@ export default function App() {
                 <li className="flex items-center gap-3"><Check size={14} className="text-green-500 shrink-0" /> 600 Calls / Month</li>
                 <li className="flex items-center gap-3"><Check size={14} className="text-green-500 shrink-0" /> 30 Second Lead Response Time</li>
                 <li className="flex items-center gap-3"><Check size={14} className="text-green-500 shrink-0" /> PitchLabs Voice</li>
-                <li className="flex items-center gap-3"><Check size={14} className="text-green-500 shrink-0" /> Durum Intelligence</li>
+                <li className="flex items-center gap-3"><Check size={14} className="text-green-500 shrink-0" /> Durum.ai</li>
                 <li className="flex items-center gap-3"><Check size={14} className="text-green-500 shrink-0" /> Full Call Recording + Briefs</li>
               </ul>
               <button className="w-full bg-brand-orange text-white py-4 text-xs font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all cursor-pointer">
@@ -765,7 +765,7 @@ export default function App() {
                 <li className="flex items-center gap-3"><Check size={14} className="text-green-500 shrink-0" /> Unlimited Calls</li>
                 <li className="flex items-center gap-3"><Check size={14} className="text-green-500 shrink-0" /> Custom Voice Persona</li>
                 <li className="flex items-center gap-3"><Check size={14} className="text-green-500 shrink-0" /> Dedicated Infra + SLA</li>
-                <li className="flex items-center gap-3"><Check size={14} className="text-green-500 shrink-0" /> Full Durum Integration</li>
+                <li className="flex items-center gap-3"><Check size={14} className="text-green-500 shrink-0" /> Full Durum.ai Integration</li>
               </ul>
               <button className="w-full border border-white/20 py-4 text-xs font-black uppercase tracking-widest hover:bg-white/5 transition-all cursor-pointer">
                 Contact Sales
